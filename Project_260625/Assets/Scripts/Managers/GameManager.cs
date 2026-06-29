@@ -13,8 +13,17 @@ public class GameManager : SingletonBehaviour<GameManager>, IManager
             DontDestroyOnLoad(gameObject);
     }
 
+    protected void Start()
+    {
+        Init();
+    }
+
     public override void Init()
     {
         base.Init();
+
+        InputManager.Instance.Init();
+        SceneControlManager.Instance.Init();
+        SystemUIManager.Instance.Init();
     }
 }

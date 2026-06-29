@@ -96,7 +96,7 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         CurLoadingScene = scene;
 
         // 로딩.
-        AsyncOperationHandle<SceneInstance> handle = Addressables.LoadSceneAsync($"{sceneName}.unity", loadSceneMode);
+        AsyncOperationHandle<SceneInstance> handle = Addressables.LoadSceneAsync($"Assets/Scenes/{sceneName}.unity", loadSceneMode);
 
         while (!handle.IsDone)
         {
