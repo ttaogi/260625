@@ -2,14 +2,13 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class TitleController : MonoBehaviour
+public class TitleScene : MonoBehaviour
 {
     #region Inspector
     public Button btnEnter;
     #endregion Inspector
 
     /////////////////////////////////////////////////////
-    ///
 
     protected void Awake()
     {

@@ -107,7 +107,12 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         yield return new WaitUntil(() => handle.Status != AsyncOperationStatus.None);
 
         if (handle.Status == AsyncOperationStatus.Succeeded)
-            _handles.Add(handle);
+        {
+            lock (_handles)
+            {
+                _handles.Add(handle);
+            }
+        }
 
         yield return new WaitForEndOfFrame();
 
@@ -131,29 +136,74 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
 
     private IEnumerator ReleaseHandles()
     {
-        for (int i = _handles.Count - 1; i >= 0; --i)
+        lock (_handles)
         {
-            AsyncOperationHandle<SceneInstance> handle = _handles[i];
-
-            if (handle.IsValid())
+            for (int i = _handles.Count - 1; i >= 0; --i)
             {
-                AsyncOperationHandle<SceneInstance> unloadHandle = Addressables.UnloadSceneAsync(handle);
-                yield return unloadHandle;
-            }
+                AsyncOperationHandle<SceneInstance> handle = _handles[i];
 
-            _handles.RemoveAt(i);
+                if (handle.IsValid())
+                {
+                    AsyncOperationHandle<SceneInstance> unloadHandle = Addressables.UnloadSceneAsync(handle);
+                    yield return unloadHandle;
+                }
+
+                _handles.RemoveAt(i);
+            }
         }
     }
     #endregion LoadScene
+
+
+
+    public void UnloadScene(eScene scene, Action onFinished = null)
+    {
+        StartCoroutine(CoUnloadScene(scene, onFinished));
+    }
+
+    #region UnloadScene
+    private IEnumerator CoUnloadScene(eScene scene, Action onFinished = null)
+    {
+        lock (_handles)
+        {
+            AsyncOperationHandle<SceneInstance> handle = _handles.Find(x =>
+            {
+                if (x.IsValid())
+                    return x.Result.Scene.name == scene.ToString();
+                else
+                    return false;
+            });
+
+            if (handle.IsValid())
+            {
+                AsyncOperationHandle<SceneInstance> unloadHandle = Addressables.UnloadSceneAsync(handle, UnloadSceneOptions.None);
+
+                yield return unloadHandle;
+
+                if (unloadHandle.IsValid())
+                    Addressables.Release(unloadHandle);
+            }
+
+            _handles.Remove(handle);
+
+            onFinished?.Invoke();
+        }
+    }
+    #endregion UnloadScene
+
+
 
     public bool IsLoadedScene(eScene scene) => IsLoadedScene(scene.ToString());
 
     public bool IsLoadedScene(string sceneName)
     {
-        if (_handles.Exists(x => x.IsValid() && x.Result.Scene.name == sceneName))
-            return true;
-        else if (CurLoadingScene != eScene.None)
-            return CurLoadingScene.ToString() == sceneName;
+        lock (_handles)
+        {
+            if (_handles.Exists(x => x.IsValid() && x.Result.Scene.name == sceneName))
+                return true;
+            else if (CurLoadingScene != eScene.None)
+                return CurLoadingScene.ToString() == sceneName;
+        }
 
         return false;
     }

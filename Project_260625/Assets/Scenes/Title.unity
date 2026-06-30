@@ -899,7 +899,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3a108e182a28d3f49984eeb7d1fe757b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TitleController
+  m_EditorClassIdentifier: Assembly-CSharp::TitleScene
   btnEnter: {fileID: 1409894098}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
