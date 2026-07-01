@@ -25,5 +25,6 @@ public class GameManager : SingletonBehaviour<GameManager>, IManager
         InputManager.Instance.Init();
         SceneControlManager.Instance.Init();
         SystemUIManager.Instance.Init();
+        UIControlManager.Instance.Init();
     }
 }

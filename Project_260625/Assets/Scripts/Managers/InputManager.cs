@@ -4,17 +4,17 @@ using UnityEngine;
 public class InputManager : SingletonBehaviour<InputManager>, IManager
 {
     #region Event
-    private Action _onBack;
-    public event Action OnBack
+    private Action _onBackPress;
+    public event Action OnBackPress
     {
         add
         {
-            _onBack -= value;
-            _onBack += value;
+            _onBackPress -= value;
+            _onBackPress += value;
         }
         remove
         {
-            _onBack -= value;
+            _onBackPress -= value;
         }
     }
     #endregion Event
@@ -22,6 +22,6 @@ public class InputManager : SingletonBehaviour<InputManager>, IManager
     protected void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
-            _onBack?.Invoke();
+            _onBackPress?.Invoke();
     }
 }

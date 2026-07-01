@@ -10,6 +10,20 @@ using UnityEngine.SceneManagement;
 public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IManager
 {
     #region Event
+    private Action _onChangeScenePre;
+    public event Action OnChangeScenePre
+    {
+        add
+        {
+            _onChangeScenePre -= value;
+            _onChangeScenePre += value;
+        }
+        remove
+        {
+            _onChangeScenePre -= value;
+        }
+    }
+
     private Action _onChangeScene;
     public event Action OnChangeScene
     {
@@ -90,6 +104,8 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         string sceneName = scene.ToString();
 
         // 전.
+        _onChangeScenePre?.Invoke();
+
         if (loadSceneMode == LoadSceneMode.Single)
             yield return StartCoroutine(ReleaseHandles());
 

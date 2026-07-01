@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 
@@ -8,19 +8,11 @@ public abstract class WindowArgs { }
 
 [RequireComponent(typeof(Canvas))]
 [RequireComponent(typeof(GraphicRaycaster))]
-public class Window : MonoBehaviour
+public abstract class Window : MonoBehaviour
 {
-    public class CanvasInfo
-    {
-        public Canvas canvas;
-        public int order;
-    }
-
-    /////////////////////////////////////////////
-
     #region Event
-    public Action _onClose;
-    private event Action OnClose
+    protected Action _onClose;
+    public event Action OnClose
     {
         add
         {
@@ -35,15 +27,16 @@ public class Window : MonoBehaviour
     #endregion Event
 
     #region Inspector
-    public EventTrigger blockTouch;
     #endregion Inspector
+
+    private readonly List<Canvas> _canvases = new();
 
     public Canvas Canvas { get; private set; } = null;
     public int baseOrder = 0;
     public int minOrder = 0;
     public int maxOrder = 0;
 
-    public bool IsValid { get; set; } = false;
+    public bool IsValid { get; protected set; } = false;
 
     public eScene scene = eScene.None;
 
@@ -64,30 +57,7 @@ public class Window : MonoBehaviour
 
     /////////////////////////////////////////////
 
-    public void Open(Action<bool> onFinished, Action onClosed = null, WindowArgs args = null)
-    {
-        OpenCheck((result) =>
-        {
-            Utils.Log($"[Window] Open[{gameObject.name}] result : {result}");
-
-            if (result)
-            {
-                IsValid = true;
-
-                if (onClosed != null)
-                    OnClose += onClosed;
-            }
-
-            onFinished?.Invoke(result);
-        }, args);
-    }
-
     #region Open
-    protected virtual void OpenCheck(Action<bool> onCheck, WindowArgs args = null)
-    {
-        onCheck?.Invoke(true);
-    }
-
     protected virtual void OpenProcess() { }
     #endregion Open
 
@@ -101,7 +71,7 @@ public class Window : MonoBehaviour
     #region Close
     protected virtual void CloseProcess()
     {
-        // order 정리 필요.
+        UpdateCanvasOrder(0);
 
         gameObject.SetActive(false);
 
@@ -114,17 +84,74 @@ public class Window : MonoBehaviour
 
 
 
+    #region Order
+    public void SetCanvasOrder()
+    {
+        Canvas[] canvases = GetComponentsInChildren<Canvas>(true);
+
+        _canvases.Clear();
+        _canvases.AddRange(canvases);
+
+        if (_canvases.Count > 0)
+        {
+            minOrder = _canvases[0].sortingOrder;
+            maxOrder = _canvases[0].sortingOrder;
+
+            for (int i = 0; i < _canvases.Count; ++i)
+            {
+                if (minOrder > _canvases[i].sortingOrder)
+                    minOrder = _canvases[i].sortingOrder;
+
+                if (maxOrder < _canvases[i].sortingOrder)
+                    maxOrder = _canvases[i].sortingOrder;
+            }
+        }
+    }
+
+    public void SortCanvasOrder()
+    {
+        SetCanvasOrder();
+
+        Canvas parentCanvas = null;
+
+        if (gameObject.transform.parent != null)
+            parentCanvas = gameObject.transform.parent.GetComponentInParent<Canvas>();
+
+        if (parentCanvas != null)
+            baseOrder = parentCanvas.sortingOrder + 1;
+        else
+            baseOrder = 0;
+
+        for (int i = 0; i < _canvases.Count; ++i)
+            _canvases[i].sortingOrder = baseOrder + i;
+
+        SetCanvasOrder();
+    }
+
+    public void UpdateCanvasOrder(int newBaseOrder)
+    {
+        if (_canvases.Count > 0 && newBaseOrder >= 0)
+        {
+            baseOrder = _canvases[0].sortingOrder;
+
+            int diffOrder = newBaseOrder - baseOrder;
+
+            for (int i = 0; i < _canvases.Count; ++i)
+                _canvases[i].sortingOrder += diffOrder;
+        }
+
+        SetCanvasOrder();
+    }
+    #endregion Order
+
+
+
     public bool BackPress()
     {
         return BackPressProcess();
     }
 
     #region BackPress
-    protected virtual bool BackPressProcess()
-    {
-        Close();
-
-        return true;
-    }
+    protected abstract bool BackPressProcess();
     #endregion BackPress
 }
