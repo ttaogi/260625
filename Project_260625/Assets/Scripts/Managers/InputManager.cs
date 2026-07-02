@@ -4,8 +4,9 @@ using UnityEngine;
 public class InputManager : SingletonBehaviour<InputManager>, IManager
 {
     #region Event
-    private Action _onBackPress;
-    public event Action OnBackPress
+    public delegate bool EventBackPress();
+    private EventBackPress _onBackPress;
+    public event EventBackPress OnBackPress
     {
         add
         {

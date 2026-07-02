@@ -17,6 +17,8 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     {
         if (_coFadeIn != null)
             StopCoroutine(_coFadeIn);
+        if (_coFadeOut != null)
+            StopCoroutine(_coFadeOut);
 
         _coFadeIn = StartCoroutine(CoFadeIn());
     }
@@ -33,7 +35,12 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
             time += Time.deltaTime;
 
             if (time > FadeTime)
+            {
+                color.a = 0f;
+                imgFade.color = color;
+
                 break;
+            }
 
             color.a = Mathf.Max(FadeTime - time, 0f) / FadeTime;
             imgFade.color = color;
@@ -46,6 +53,8 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
     public void FadeOut()
     {
+        if (_coFadeIn != null)
+            StopCoroutine(_coFadeIn);
         if (_coFadeOut != null)
             StopCoroutine(_coFadeOut);
 
@@ -64,7 +73,12 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
             time += Time.deltaTime;
 
             if (time > FadeTime)
+            {
+                color.a = 1f;
+                imgFade.color = color;
+
                 break;
+            }
 
             color.a = time / FadeTime;
             imgFade.color = color;
@@ -74,6 +88,5 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
         yield return null;
     }
-
     #endregion FadeIn/Out
 }

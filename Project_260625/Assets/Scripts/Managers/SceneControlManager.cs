@@ -39,7 +39,6 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
     }
     #endregion Event
 
-    private readonly Queue<eScene> _scenes = new();
     private readonly List<AsyncOperationHandle<SceneInstance>> _handles = new();
 
     public eScene PreScene { get; private set; } = eScene.None;
@@ -177,6 +176,11 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         StartCoroutine(CoUnloadScene(scene, onFinished));
     }
 
+    public void UnloadSceneAll(Action onFinished = null)
+    {
+        StartCoroutine(CoUnloadSceneAll(onFinished));
+    }
+
     #region UnloadScene
     private IEnumerator CoUnloadScene(eScene scene, Action onFinished = null)
     {
@@ -204,6 +208,30 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
 
             onFinished?.Invoke();
         }
+    }
+
+    private IEnumerator CoUnloadSceneAll(Action onFinished = null)
+    {
+        List<eScene> scenes = new();
+
+        lock (_handles)
+        {
+            _handles.RemoveAll(x => x.IsValid() == false);
+
+            for (int i = 0; i < _handles.Count; ++i)
+                if (Enum.TryParse(_handles[i].Result.Scene.name, out eScene scene))
+                    scenes.Add(scene);
+        }
+
+        for (int i = 0; i < scenes.Count; ++i)
+            yield return StartCoroutine(CoUnloadScene(scenes[i]));
+
+        lock (_handles)
+        {
+            _handles.Clear();
+        }
+
+        onFinished?.Invoke();
     }
     #endregion UnloadScene
 
