@@ -39,7 +39,7 @@ public class SceneInfo
     public bool IsValid() => scene != eScene.None && unityScene != null && windowScene != null;
 }
 
-public class UIControlManager : SingletonBehaviour<UIControlManager>
+public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
 {
     #region Event
     private Action<WindowScene> _onChangeScene;
@@ -152,6 +152,8 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>
             return false;
 
         //팝업 체크.
+        if (!PopupManager.Instance.BackPress())
+            return false;
 
         return true;
     }

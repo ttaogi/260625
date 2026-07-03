@@ -23,6 +23,7 @@ public class GameManager : SingletonBehaviour<GameManager>, IManager
         base.Init();
 
         InputManager.Instance.Init();
+        PopupManager.Instance.Init();
         SceneControlManager.Instance.Init();
         SystemUIManager.Instance.Init();
         UIControlManager.Instance.Init();

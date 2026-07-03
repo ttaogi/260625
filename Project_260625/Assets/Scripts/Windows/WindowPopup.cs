@@ -9,7 +9,9 @@ public class WindowPopup : Window
     public EventTrigger blockTouch;
     #endregion Inspector
 
-    private WindowScene _parent = null;
+    private Window _parent = null;
+
+    public GameObject[] noChangeLayerObjects;
 
     /////////////////////////////////////////////
 
@@ -30,7 +32,7 @@ public class WindowPopup : Window
 
     /////////////////////////////////////////////
 
-    public void Open(WindowScene parent, Action<bool> onFinished = null, Action onClose = null, WindowArgs args = null)
+    public void Open(Window parent, Action<bool> onFinished = null, Action onClose = null, WindowArgs args = null)
     {
         OpenCheck((result) =>
         {
@@ -49,7 +51,7 @@ public class WindowPopup : Window
         onCheck?.Invoke(true);
     }
 
-    protected void OpenWindow(WindowScene parent, Action onClose = null)
+    protected void OpenWindow(Window parent, Action onClose = null)
     {
         _parent = parent;
 

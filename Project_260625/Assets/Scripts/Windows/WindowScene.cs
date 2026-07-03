@@ -10,8 +10,6 @@ public class WindowScene : Window
     public List<GameObject> objOnOffGroup;
     #endregion Inspector
 
-    public readonly List<WindowPopup> childrenWindows = new();
-
     /////////////////////////////////////////////
 
     protected override void Awake()

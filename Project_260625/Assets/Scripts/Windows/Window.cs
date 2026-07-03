@@ -31,6 +31,8 @@ public abstract class Window : MonoBehaviour
 
     private readonly List<Canvas> _canvases = new();
 
+    public readonly List<WindowPopup> childrenWindows = new();
+
     public Canvas Canvas { get; private set; } = null;
     public int baseOrder = 0;
     public int minOrder = 0;
@@ -44,7 +46,7 @@ public abstract class Window : MonoBehaviour
 
     protected virtual void Awake()
     {
-        Canvas = GetComponent<Canvas>();
+        SetCanvas();
     }
 
     protected virtual void OnEnable()
@@ -85,6 +87,11 @@ public abstract class Window : MonoBehaviour
 
 
     #region Order
+    public void SetCanvas()
+    {
+        Canvas = GetComponent<Canvas>();
+    }
+
     public void SetCanvasOrder()
     {
         Canvas[] canvases = GetComponentsInChildren<Canvas>(true);
@@ -108,7 +115,7 @@ public abstract class Window : MonoBehaviour
         }
     }
 
-    public void SortCanvasOrder()
+    public void SortCanvasOrder(int newBaseOrder = -1)
     {
         SetCanvasOrder();
 
@@ -117,10 +124,15 @@ public abstract class Window : MonoBehaviour
         if (gameObject.transform.parent != null)
             parentCanvas = gameObject.transform.parent.GetComponentInParent<Canvas>();
 
-        if (parentCanvas != null)
-            baseOrder = parentCanvas.sortingOrder + 1;
+        if (newBaseOrder == -1)
+        {
+            if (parentCanvas != null)
+                baseOrder = parentCanvas.sortingOrder + 1;
+            else
+                baseOrder = 0;
+        }
         else
-            baseOrder = 0;
+            baseOrder = newBaseOrder;
 
         for (int i = 0; i < _canvases.Count; ++i)
             _canvases[i].sortingOrder = baseOrder + i;
