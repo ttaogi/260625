@@ -75,8 +75,10 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
 
     protected override void OnDestroy()
     {
-        SceneControlManager.Instance.OnChangeScenePre -= Clear;
-        InputManager.Instance.OnBackPress -= BackPress;
+        if (SceneControlManager.Instance)
+            SceneControlManager.Instance.OnChangeScenePre -= Clear;
+        if (InputManager.Instance)
+            InputManager.Instance.OnBackPress -= BackPress;
 
         base.OnDestroy();
     }

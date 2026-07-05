@@ -14,9 +14,9 @@ public class TitleScene : MonoBehaviour
     {
         btnEnter.SetOnClickEvent(() =>
         {
-            SceneControlManager.Instance.LoadScene(eScene.Home, LoadSceneMode.Single, onFinished: (result, sceneInstance) =>
+            UIControlManager.Instance.GoWindowScene(eScene.Home, isHistory: false, onFinished: (result) =>
             {
-                Utils.Log("load home.");
+                Utils.Log($"GoWindowScene : Home, Result : {result}");
             });
         });
     }

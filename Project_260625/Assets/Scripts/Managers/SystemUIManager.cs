@@ -46,7 +46,9 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
             imgFade.color = color;
         }
 
-        _coFadeOut = null;
+        imgFade.gameObject.SetActive(false);
+
+        _coFadeIn = null;
 
         yield return null;
     }
@@ -83,6 +85,8 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
             color.a = time / FadeTime;
             imgFade.color = color;
         }
+
+        imgFade.gameObject.SetActive(false);
 
         _coFadeOut = null;
 
