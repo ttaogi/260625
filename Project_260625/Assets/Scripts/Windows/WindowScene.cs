@@ -61,7 +61,7 @@ public class WindowScene : Window
     #region Close
     protected override void CloseProcess()
     {
-        // 터치 막는 거 필요.
+        SystemUIManager.Instance.IndicatorOn();
 
         // 팝업 종료.
         while (childrenWindows.Count > 0)
@@ -71,7 +71,7 @@ public class WindowScene : Window
 
         base.CloseProcess();
 
-        // 터치 막는 거 해제.
+        SystemUIManager.Instance.IndicatorOff();
     }
     #endregion Close
 

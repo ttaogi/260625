@@ -103,7 +103,7 @@ public class PopupManager : SingletonBehaviour<PopupManager>, IManager
                             eLayer layer = eLayer.UI, WindowArgs args = null)
                             where T : WindowPopup
     {
-        // 터막.
+        SystemUIManager.Instance.IndicatorOn();
 
         WindowPopup windowPopup = null;
         PopupInfo popupInfo = _popupInfos.Find(x => x.popup == popup && !x.IsOpen);
@@ -152,13 +152,13 @@ public class PopupManager : SingletonBehaviour<PopupManager>, IManager
                         _onOpen?.Invoke();
                         onOpen?.Invoke(true);
 
-                        // 터막 해제.
+                        SystemUIManager.Instance.IndicatorOff();
                     }
                     else
                     {
                         onOpen?.Invoke(false);
 
-                        // 터막 해제.
+                        SystemUIManager.Instance.IndicatorOff();
                     }
                 },
                 onClose: () =>
@@ -177,7 +177,7 @@ public class PopupManager : SingletonBehaviour<PopupManager>, IManager
         {
             onOpen?.Invoke(false);
 
-            // 터막 해제.
+            SystemUIManager.Instance.IndicatorOff();
 
             return null;
         }

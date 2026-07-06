@@ -89,8 +89,13 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
 
     public void LoadScene(eScene scene, LoadSceneMode loadSceneMode, Action<bool, SceneInstance> onFinished = null)
     {
+        Utils.Log($"[SceneControlManager] LoadScene : {scene}, {loadSceneMode}");
+
         if (IsLoading)
+        {
+            Utils.Log($"[SceneControlManager] LoadScene : Already Loading.");
             return;
+        }
 
         IsLoading = true;
 
@@ -106,7 +111,11 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         _onChangeScenePre?.Invoke();
 
         if (loadSceneMode == LoadSceneMode.Single)
+        {
+            PopupManager.Instance.CloseAll();
+
             yield return StartCoroutine(ReleaseHandles());
+        }
 
         CurLoadingScene = scene;
 

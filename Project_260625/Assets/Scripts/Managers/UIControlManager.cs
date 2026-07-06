@@ -148,12 +148,12 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
     #region BackPress
     public bool IsBackPressValid()
     {
-        //터막 체크.
+        if (SystemUIManager.Instance.IsIndicatorOn)
+            return false;
 
         if (_isSwitching)
             return false;
 
-        //팝업 체크.
         if (!PopupManager.Instance.BackPress())
             return false;
 
@@ -200,42 +200,47 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
 
         _isSwitching = true;
 
-        SystemUIManager.Instance.FadeOut();
-        //터막.
-
-        LoadWindowScene(scene, (loadResult, sceneInfo) =>
+        SystemUIManager.Instance.IndicatorOn();
+        SystemUIManager.Instance.FadeOut(() =>
         {
-            if (loadResult && sceneInfo != null && sceneInfo.IsValid())
+            LoadWindowScene(scene, (loadResult, sceneInfo) =>
             {
-                SwitchWindow(sceneInfo.windowScene, (switchResult) =>
+                if (loadResult && sceneInfo != null && sceneInfo.IsValid())
                 {
-                    if (switchResult)
+                    SwitchWindow(sceneInfo.windowScene, (switchResult) =>
                     {
-                        if (isHistory)
-                            PushHistory(scene);
+                        if (switchResult)
+                        {
+                            if (isHistory)
+                                PushHistory(scene);
 
-                        CurrentSceneInfo = sceneInfo;
+                            CurrentSceneInfo = sceneInfo;
 
-                        SceneManager.SetActiveScene(CurrentSceneInfo.unityScene);
-                    }
+                            SceneManager.SetActiveScene(CurrentSceneInfo.unityScene);
+                        }
 
+                        _isSwitching = false;
+
+                        onFinished?.Invoke(switchResult);
+
+                        SystemUIManager.Instance.FadeIn(() =>
+                        {
+                            SystemUIManager.Instance.IndicatorOff();
+                        });
+                    }, onClose, args);
+                }
+                else
+                {
                     _isSwitching = false;
 
-                    onFinished?.Invoke(switchResult);
+                    onFinished?.Invoke(false);
 
-                    //터막 해제.
-                    SystemUIManager.Instance.FadeIn();
-                }, onClose, args);
-            }
-            else
-            {
-                _isSwitching = false;
-
-                onFinished?.Invoke(false);
-
-                //터막 해제.
-                SystemUIManager.Instance.FadeIn();
-            }
+                    SystemUIManager.Instance.FadeIn(() =>
+                    {
+                        SystemUIManager.Instance.IndicatorOff();
+                    });
+                }
+            });
         });
     }
 

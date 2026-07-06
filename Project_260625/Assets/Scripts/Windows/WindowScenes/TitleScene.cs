@@ -14,9 +14,16 @@ public class TitleScene : MonoBehaviour
     {
         btnEnter.SetOnClickEvent(() =>
         {
-            UIControlManager.Instance.GoWindowScene(eScene.Home, isHistory: false, onFinished: (result) =>
+            SystemUIManager.Instance.FadeOut(() =>
             {
-                Utils.Log($"GoWindowScene : Home, Result : {result}");
+                SceneControlManager.Instance.UnloadScene(eScene.Title, () =>
+                {
+                    UIControlManager.Instance.GoWindowScene(eScene.Home, isHistory: false, onFinished: (result) =>
+                    {
+                        Utils.Log($"[TitleScene] GoWindowScene : Home, Result : {result}");
+                        SystemUIManager.Instance.FadeIn();
+                    });
+                });
             });
         });
     }
