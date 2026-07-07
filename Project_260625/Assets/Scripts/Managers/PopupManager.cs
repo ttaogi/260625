@@ -103,7 +103,7 @@ public class PopupManager : SingletonBehaviour<PopupManager>, IManager
                             eLayer layer = eLayer.UI, WindowArgs args = null)
                             where T : WindowPopup
     {
-        SystemUIManager.Instance.IndicatorOn();
+        SystemUIManager.Instance.IndicatorOn(isIconOn: false);
 
         WindowPopup windowPopup = null;
         PopupInfo popupInfo = _popupInfos.Find(x => x.popup == popup && !x.IsOpen);

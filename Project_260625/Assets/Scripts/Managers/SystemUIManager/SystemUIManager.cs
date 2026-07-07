@@ -1,13 +1,26 @@
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 {
     #region Inspector
+    [Header("FadeIn/Out.")]
     public Image imgFade;
+
+    [Header("Loading.")]
+    public GameObject objLoading;
+    public Image imgLoading;
+
+    [Header("Message.")]
+    public GameObject objMessage;
+    public TMP_Text textMessage;
+
+    [Header("Indicator.")]
     public GameObject objIndicator;
+    public GameObject objIndicatorIcon;
     #endregion Inspector
 
 
@@ -16,7 +29,22 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     {
         base.Init();
 
+        // FadeIn/Out.
+        _coFadeIn = null;
+        _coFadeOut = null;
         IsFadeOut = false;
+
+        // Loading.
+        objLoading.SetActive(false);
+        imgLoading.fillAmount = 0f;
+
+        // Message.
+        objMessage.SetActive(false);
+        textMessage.text = string.Empty;
+
+        // Indicator.
+        _indicatorCount = 0;
+        objIndicator.SetActive(false);
     }
 
 
@@ -48,10 +76,10 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
     private IEnumerator CoFadeIn(Action onFinished = null)
     {
+        Utils.Log($"[SystemUIManager] FadeIn.");
+
         float time = 0f;
         Color color = imgFade.color;
-
-        imgFade.gameObject.SetActive(true);
 
         while (true)
         {
@@ -98,6 +126,8 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
     private IEnumerator CoFadeOut(Action onFinished = null)
     {
+        Utils.Log($"[SystemUIManager] FadeOut.");
+
         float time = 0f;
         Color color = imgFade.color;
 
@@ -119,7 +149,6 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
             imgFade.color = color;
         }
 
-        imgFade.gameObject.SetActive(false);
         onFinished?.Invoke();
 
         _coFadeOut = null;
@@ -130,13 +159,65 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
 
 
+    #region Loading
+    public void LoadingOn()
+    {
+        objLoading.SetActive(true);
+        imgLoading.fillAmount = 0f;
+    }
+
+    /// <summary> ration : 0 ~ 1. </summary>
+    public void SetLoading(float ration)
+    {
+        imgLoading.fillAmount = Mathf.Clamp01(ration);
+    }
+
+    public void LoadingOff()
+    {
+        objLoading.SetActive(false);
+        imgLoading.fillAmount = 0f;
+    }
+    #endregion Loading
+
+
+
+    #region Message
+    private const float SHOW_MESSAGE_TIME = 1.0f;
+    private Coroutine _coShowMessage = null;
+
+    public void ShowMessage(string msg)
+    {
+        if (_coShowMessage != null)
+        {
+            StopCoroutine(_coShowMessage);
+            _coShowMessage = null;
+        }
+
+        _coShowMessage = StartCoroutine(CoShowMessage(msg));
+    }
+
+    private IEnumerator CoShowMessage(string msg)
+    {
+        objMessage.SetActive(true);
+        textMessage.text = msg;
+
+        yield return new WaitForSecondsRealtime(SHOW_MESSAGE_TIME);
+
+        objMessage.SetActive(false);
+        textMessage.text = string.Empty;
+    }
+    #endregion Message
+
+
+
     #region Indicator
     private int _indicatorCount = 0;
     public bool IsIndicatorOn => objIndicator.activeInHierarchy;
 
-    public void IndicatorOn()
+    public void IndicatorOn(bool isIconOn)
     {
         objIndicator.SetActive(true);
+        objIndicatorIcon.SetActive(isIconOn);
 
         ++_indicatorCount;
 
@@ -146,6 +227,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     public void IndicatorOff()
     {
         objIndicator.SetActive(false);
+        objIndicatorIcon.SetActive(false);
 
         --_indicatorCount;
 

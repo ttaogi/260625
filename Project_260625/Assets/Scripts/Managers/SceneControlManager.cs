@@ -64,12 +64,16 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
     {
         base.Init();
 
+        PreScene = eScene.None;
+        CurScene = eScene.Title;
+        CurLoadingScene = eScene.None;
+        IsLoading = false;
+        LoadingRation = 0f;
+
         if (IsMyInstance())
         {
             SceneManager.sceneLoaded += OnSceneLoaded;
             SceneManager.sceneUnloaded += OnSceneUnloaded;
-
-            CurScene = eScene.Title;
         }
     }
 
@@ -87,7 +91,7 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
 
     /////////////////////////////////////////////////////
 
-    public void LoadScene(eScene scene, LoadSceneMode loadSceneMode, Action<bool, SceneInstance> onFinished = null)
+    public void LoadScene(eScene scene, LoadSceneMode loadSceneMode, bool isShowLoading = true, Action<bool, SceneInstance> onFinished = null)
     {
         Utils.Log($"[SceneControlManager] LoadScene : {scene}, {loadSceneMode}");
 
@@ -99,11 +103,11 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
 
         IsLoading = true;
 
-        StartCoroutine(CoLoadScene(scene, loadSceneMode, onFinished));
+        StartCoroutine(CoLoadScene(scene, loadSceneMode, isShowLoading, onFinished));
     }
 
     #region LoadScene
-    private IEnumerator CoLoadScene(eScene scene, LoadSceneMode loadSceneMode, Action<bool, SceneInstance> onFinished = null)
+    private IEnumerator CoLoadScene(eScene scene, LoadSceneMode loadSceneMode, bool isShowLoading = true, Action<bool, SceneInstance> onFinished = null)
     {
         string sceneName = scene.ToString();
 
@@ -118,6 +122,10 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         }
 
         CurLoadingScene = scene;
+        LoadingRation = 0f;
+
+        if (isShowLoading)
+            SystemUIManager.Instance.LoadingOn();
 
         // 로딩.
         AsyncOperationHandle<SceneInstance> handle = Addressables.LoadSceneAsync($"Assets/Scenes/{sceneName}.unity", loadSceneMode);
@@ -125,6 +133,10 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         while (!handle.IsDone)
         {
             LoadingRation = handle.PercentComplete;
+
+            if (isShowLoading)
+                SystemUIManager.Instance.SetLoading(LoadingRation);
+
             yield return null;
         }
 
@@ -138,11 +150,16 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
             }
         }
 
+        yield return new WaitForSecondsRealtime(5f);
         yield return new WaitForEndOfFrame();
 
         // 후.
         CurLoadingScene = eScene.None;
+        LoadingRation = 0f;
         IsLoading = false;
+
+        if (isShowLoading)
+            SystemUIManager.Instance.LoadingOff();
 
         bool result = handle.Status == AsyncOperationStatus.Succeeded;
 

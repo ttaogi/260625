@@ -61,7 +61,7 @@ public class WindowScene : Window
     #region Close
     protected override void CloseProcess()
     {
-        SystemUIManager.Instance.IndicatorOn();
+        SystemUIManager.Instance.IndicatorOn(isIconOn: false);
 
         // 팝업 종료.
         while (childrenWindows.Count > 0)

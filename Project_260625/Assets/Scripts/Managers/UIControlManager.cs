@@ -107,6 +107,9 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
     #region History
     public void PushHistory(eScene scene)
     {
+        if (scene == eScene.None)
+            return;
+
         for (int i = 0; i < _history.Count; ++i)
             if (_history[i] == scene)
             {
@@ -175,16 +178,16 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
             eScene scene = PopHistory();
 
             if (scene != eScene.None)
-                GoWindowScene(scene, false);
+                GoWindowScene(scene, isHistory: false);
             else
-                GoWindowScene(eScene.Home, false);
+                GoWindowScene(eScene.Home, isHistory: false);
         }
     }
     #endregion BackPress
 
 
 
-    public void GoWindowScene(eScene scene, bool isHistory, Action<bool> onFinished = null, Action onClose = null, WindowArgs args = null)
+    public void GoWindowScene(eScene scene, bool isHistory, bool isShowLoading = true, Action<bool> onFinished = null, Action onClose = null, WindowArgs args = null)
     {
         if (CurrentSceneInfo != null && CurrentSceneInfo.scene == scene)
         {
@@ -200,10 +203,10 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
 
         _isSwitching = true;
 
-        SystemUIManager.Instance.IndicatorOn();
+        SystemUIManager.Instance.IndicatorOn(isIconOn: false);
         SystemUIManager.Instance.FadeOut(() =>
         {
-            LoadWindowScene(scene, (loadResult, sceneInfo) =>
+            LoadWindowScene(scene, isShowLoading, (loadResult, sceneInfo) =>
             {
                 if (loadResult && sceneInfo != null && sceneInfo.IsValid())
                 {
@@ -211,8 +214,8 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
                     {
                         if (switchResult)
                         {
-                            if (isHistory)
-                                PushHistory(scene);
+                            if (isHistory && CurrentSceneInfo != null)
+                                PushHistory(CurrentSceneInfo.scene);
 
                             CurrentSceneInfo = sceneInfo;
 
@@ -245,7 +248,7 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
     }
 
     #region GoWindow
-    private void LoadWindowScene(eScene scene, Action<bool, SceneInfo> onFinished = null)
+    private void LoadWindowScene(eScene scene, bool isShowLoading = true, Action<bool, SceneInfo> onFinished = null)
     {
         SceneInfo sceneInfo = _sceneInfos.Find(x => x.scene == scene);
 
@@ -255,7 +258,7 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
             return;
         }
 
-        SceneControlManager.Instance.LoadScene(scene, LoadSceneMode.Single, (result, sceneInstance) =>
+        SceneControlManager.Instance.LoadScene(scene, LoadSceneMode.Single, isShowLoading, (result, sceneInstance) =>
         {
             if (result)
             {
