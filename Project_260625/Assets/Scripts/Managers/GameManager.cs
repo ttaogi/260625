@@ -1,3 +1,4 @@
+// using DG.Tweening;
 using UnityEngine;
 
 public class GameManager : SingletonBehaviour<GameManager>, IManager
@@ -21,6 +22,8 @@ public class GameManager : SingletonBehaviour<GameManager>, IManager
     public override void Init()
     {
         base.Init();
+
+        // DOTween.Init(~~);
 
         InputManager.Instance.Init();
         PopupManager.Instance.Init();

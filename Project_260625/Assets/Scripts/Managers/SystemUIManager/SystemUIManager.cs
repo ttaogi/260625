@@ -7,16 +7,21 @@ using UnityEngine.UI;
 public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 {
     #region Inspector
-    [Header("FadeIn/Out.")]
+    [Header("Fade In/Out.")]
     public Image imgFade;
 
     [Header("Loading.")]
     public GameObject objLoading;
     public Image imgLoading;
 
-    [Header("Message.")]
-    public GameObject objMessage;
-    public TMP_Text textMessage;
+    [Header("Toast Message.")]
+    public CanvasGroup canvasGroupToastMessage;
+    public GameObject objToastMessage;
+    public RectTransform rectToastMessageBackground;
+    public TMP_Text textToastMessage;
+
+    [Header("Notice.")]
+    public NoticeViewer noticeViewer;
 
     [Header("Indicator.")]
     public GameObject objIndicator;
@@ -29,7 +34,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     {
         base.Init();
 
-        // FadeIn/Out.
+        // Fade In/Out.
         _coFadeIn = null;
         _coFadeOut = null;
         IsFadeOut = false;
@@ -38,9 +43,15 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
         objLoading.SetActive(false);
         imgLoading.fillAmount = 0f;
 
-        // Message.
-        objMessage.SetActive(false);
-        textMessage.text = string.Empty;
+        // Toast Message.
+        canvasGroupToastMessage.alpha = 0f;
+        objToastMessage.SetActive(false);
+        rectToastMessageBackground.sizeDelta = new(textToastMessage.rectTransform.rect.width,
+                                                   textToastMessage.rectTransform.rect.height);
+        textToastMessage.text = string.Empty;
+
+        // Notice.
+        noticeViewer.Init();
 
         // Indicator.
         _indicatorCount = 0;
@@ -49,7 +60,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
 
 
-    #region FadeIn/Out
+    #region Fade In/Out
     private Coroutine _coFadeIn = null;
     private Coroutine _coFadeOut = null;
     private const float FadeTime = 0.3f;
@@ -155,7 +166,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
         yield return null;
     }
-    #endregion FadeIn/Out
+    #endregion Fade In/Out
 
 
 
@@ -181,8 +192,9 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
 
 
-    #region Message
-    private const float SHOW_MESSAGE_TIME = 1.0f;
+    #region Toast Message
+    private const float FADE_TOAST_MESSAGE_TIME = 0.1f;
+    private const float SHOW_TOAST_MESSAGE_TIME = 1.0f;
     private Coroutine _coShowMessage = null;
 
     public void ShowMessage(string msg)
@@ -198,15 +210,56 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
     private IEnumerator CoShowMessage(string msg)
     {
-        objMessage.SetActive(true);
-        textMessage.text = msg;
+        canvasGroupToastMessage.alpha = 0f;
+        objToastMessage.SetActive(true);
+        textToastMessage.text = msg;
 
-        yield return new WaitForSecondsRealtime(SHOW_MESSAGE_TIME);
+        yield return null;
 
-        objMessage.SetActive(false);
-        textMessage.text = string.Empty;
+        rectToastMessageBackground.sizeDelta = new(textToastMessage.rectTransform.rect.width,
+                                                   textToastMessage.rectTransform.rect.height);
+
+
+        /*
+         * Sequence _seqMessageOn;
+         * Sequence _seqMessageOff;
+         * 
+         * _seqMessageOn?.Kill();
+         * _seqMessageOff?.kill();
+         * 
+         * _seqMessageOn = DOTween.Sequence();
+         * _seqMessageOn.timeScale = 1f;
+         * _seqMessageOn.Append(canvasGroupToastMessage.DOFade(1, FADE_TOAST_MESSAGE_TIME).SetEase(Ease.봐서 결정)).SetUpdate(true);
+         * _seqMessageOn.OnComplete(() =>
+         * {
+         *  _seqMessageOff = DOTween.Sequence();
+         *  _seqMessageOff.timeScale = 1f;
+         *  _seqMessageOff.SetDelay(SHOW_TOAST_MESSAGE_TIME);
+         *  _seqMessageOff.Append(canvasGroupToastMessage.DOFade(0, FADE_TOAST_MESSAGE_TIME).SetEase(상동)).SetUpdate(true);
+         *  _seqMessageOff.OnComplete(() =>
+         *  {
+         *   objToastMessage.SetActive(false);
+         *   textToastMessage.text = string.Empty;
+         *  });
+         * });
+         */
+
+
+        yield return new WaitForSecondsRealtime(SHOW_TOAST_MESSAGE_TIME);
+
+        objToastMessage.SetActive(false);
+        textToastMessage.text = string.Empty;
     }
-    #endregion Message
+    #endregion Toast Message
+
+
+
+    #region Notice
+    public void Show(string msg)
+    {
+        noticeViewer.Show(msg);
+    }
+    #endregion Notice
 
 
 
