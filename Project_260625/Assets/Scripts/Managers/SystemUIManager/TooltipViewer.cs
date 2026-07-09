@@ -98,8 +98,10 @@ public class TooltipViewer : MonoBehaviour
 
         yield return null;
 
+        Vector3 test = camera.WorldToScreenPoint(target.position);
+
         Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(camera, target.position);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectCanvasParent, screenPos, camera, out Vector2 localPoint);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectCanvasParent, screenPos, null, out Vector2 localPoint);
 
         float tooltipWidthHalf = _rectTooltip.rect.width / 2;
         float tooltipHeightHalf = _rectTooltip.rect.height / 2;
