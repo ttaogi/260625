@@ -76,7 +76,7 @@ public class PopupManager : SingletonBehaviour<PopupManager>, IManager
 
     #region Inspector
     public PopupManagerPopup popupManagerPopup;
-    public Transform tranInactivePopupParent;
+    //public Transform tranInactivePopupParent;
     #endregion Inspector
 
     private readonly List<PopupInfo> _popupInfos = new();

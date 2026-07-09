@@ -1,4 +1,4 @@
-// using DG.Tweening;
+using DG.Tweening;
 using UnityEngine;
 
 public class GameManager : SingletonBehaviour<GameManager>, IManager
@@ -23,7 +23,8 @@ public class GameManager : SingletonBehaviour<GameManager>, IManager
     {
         base.Init();
 
-        // DOTween.Init(~~);
+        DOTween.Init(recycleAllByDefault: false, useSafeMode: true, logBehaviour: null)
+               .SetCapacity(200, 50);
 
         InputManager.Instance.Init();
         PopupManager.Instance.Init();

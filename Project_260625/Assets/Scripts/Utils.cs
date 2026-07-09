@@ -45,4 +45,24 @@ public static class Utils
         foreach (Transform child in go.transform)
             ChangeLayer(child.gameObject, layer, noChangeLayerObjects);
     }
+
+    public static Camera GetCamera(eLayer layer)
+    {
+        Camera camera = null;
+
+        foreach (Camera cam in Camera.allCameras)
+        {
+            if (cam.gameObject.activeInHierarchy)
+            {
+                var cullingMask = 1 << (int)layer;
+                if ((cam.cullingMask & cullingMask) != 0)
+                {
+                    if (camera == null || camera.depth < cam.depth)
+                        camera = cam;
+                }
+            }
+        }
+
+        return camera;
+    }
 }

@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System;
 using System.Collections;
 using TMPro;
@@ -7,6 +8,9 @@ using UnityEngine.UI;
 public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 {
     #region Inspector
+    [Header("Tooltip.")]
+    public TooltipViewer tooltipViewer;
+
     [Header("Fade In/Out.")]
     public Image imgFade;
 
@@ -28,16 +32,16 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     public GameObject objIndicatorIcon;
     #endregion Inspector
 
-
+    /////////////////////////////////////////////////
 
     public override void Init()
     {
         base.Init();
 
+        // Tooltip.
+        tooltipViewer.Init();
+
         // Fade In/Out.
-        _coFadeIn = null;
-        _coFadeOut = null;
-        IsFadeOut = false;
 
         // Loading.
         objLoading.SetActive(false);
@@ -54,9 +58,38 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
         noticeViewer.Init();
 
         // Indicator.
-        _indicatorCount = 0;
         objIndicator.SetActive(false);
     }
+
+
+
+    #region Tooltip
+    public void ShowTooltip(Transform target, string title, string desc)
+    {
+        tooltipViewer.ShowTooltip(target, title, desc);
+    }
+
+    public void HideTooltip()
+    {
+        tooltipViewer.HideTooltip();
+    }
+
+
+    public GameObject objTest;
+    public string title;
+    public string desc;
+    [ContextMenu("TEST")]
+    public void Test()
+    {
+        ShowTooltip(objTest.transform, title, desc);
+    }
+
+    [ContextMenu("Test convert")]
+    public void TT()
+    {
+        tooltipViewer.TT(objTest.transform);
+    }
+    #endregion Tooltip
 
 
 
@@ -65,7 +98,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     private Coroutine _coFadeOut = null;
     private const float FadeTime = 0.3f;
 
-    public bool IsFadeOut { get; private set; }
+    public bool IsFadeOut { get; private set; } = false;
 
     public void FadeIn(Action onFinished = null)
     {
@@ -180,6 +213,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     /// <summary> ration : 0 ~ 1. </summary>
     public void SetLoading(float ration)
     {
+        Utils.Log($"[SystemUIManager] SetLoading : {ration}");
         imgLoading.fillAmount = Mathf.Clamp01(ration);
     }
 
@@ -195,20 +229,23 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     #region Toast Message
     private const float FADE_TOAST_MESSAGE_TIME = 0.1f;
     private const float SHOW_TOAST_MESSAGE_TIME = 1.0f;
-    private Coroutine _coShowMessage = null;
 
-    public void ShowMessage(string msg)
+    private Coroutine _coShowToastMessage = null;
+    Sequence _seqToastMessageOn = null;
+    Sequence _seqToastMessageOff = null;
+
+    public void ShowToastMessage(string msg)
     {
-        if (_coShowMessage != null)
+        if (_coShowToastMessage != null)
         {
-            StopCoroutine(_coShowMessage);
-            _coShowMessage = null;
+            StopCoroutine(_coShowToastMessage);
+            _coShowToastMessage = null;
         }
 
-        _coShowMessage = StartCoroutine(CoShowMessage(msg));
+        _coShowToastMessage = StartCoroutine(CoShowToastMessage(msg));
     }
 
-    private IEnumerator CoShowMessage(string msg)
+    private IEnumerator CoShowToastMessage(string msg)
     {
         canvasGroupToastMessage.alpha = 0f;
         objToastMessage.SetActive(true);
@@ -219,45 +256,35 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
         rectToastMessageBackground.sizeDelta = new(textToastMessage.rectTransform.rect.width,
                                                    textToastMessage.rectTransform.rect.height);
 
+        _seqToastMessageOn?.Kill();
+        _seqToastMessageOff?.Kill();
 
-        /*
-         * Sequence _seqMessageOn;
-         * Sequence _seqMessageOff;
-         * 
-         * _seqMessageOn?.Kill();
-         * _seqMessageOff?.kill();
-         * 
-         * _seqMessageOn = DOTween.Sequence();
-         * _seqMessageOn.timeScale = 1f;
-         * _seqMessageOn.Append(canvasGroupToastMessage.DOFade(1, FADE_TOAST_MESSAGE_TIME).SetEase(Ease.봐서 결정)).SetUpdate(true);
-         * _seqMessageOn.OnComplete(() =>
-         * {
-         *  _seqMessageOff = DOTween.Sequence();
-         *  _seqMessageOff.timeScale = 1f;
-         *  _seqMessageOff.SetDelay(SHOW_TOAST_MESSAGE_TIME);
-         *  _seqMessageOff.Append(canvasGroupToastMessage.DOFade(0, FADE_TOAST_MESSAGE_TIME).SetEase(상동)).SetUpdate(true);
-         *  _seqMessageOff.OnComplete(() =>
-         *  {
-         *   objToastMessage.SetActive(false);
-         *   textToastMessage.text = string.Empty;
-         *  });
-         * });
-         */
+        _seqToastMessageOn = DOTween.Sequence();
+        _seqToastMessageOn.timeScale = 1f;
+        _seqToastMessageOn.Append(canvasGroupToastMessage.DOFade(1, FADE_TOAST_MESSAGE_TIME).SetEase(Ease.OutQuart)).SetUpdate(true);
+        _seqToastMessageOn.OnComplete(() =>
+        {
+            _seqToastMessageOff = DOTween.Sequence();
+            _seqToastMessageOff.timeScale = 1f;
+            _seqToastMessageOff.SetDelay(SHOW_TOAST_MESSAGE_TIME);
+            _seqToastMessageOff.Append(canvasGroupToastMessage.DOFade(0, FADE_TOAST_MESSAGE_TIME).SetEase(Ease.InQuart)).SetUpdate(true);
+            _seqToastMessageOff.OnComplete(() =>
+            {
+                objToastMessage.SetActive(false);
+                textToastMessage.text = string.Empty;
 
-
-        yield return new WaitForSecondsRealtime(SHOW_TOAST_MESSAGE_TIME);
-
-        objToastMessage.SetActive(false);
-        textToastMessage.text = string.Empty;
+                _coShowToastMessage = null;
+            });
+        });
     }
     #endregion Toast Message
 
 
 
     #region Notice
-    public void Show(string msg)
+    public void ShowNotice(string msg)
     {
-        noticeViewer.Show(msg);
+        noticeViewer.ShowNotice(msg);
     }
     #endregion Notice
 
@@ -274,7 +301,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
         ++_indicatorCount;
 
-        Utils.Log($"[SystemUIManager] IndicatorOn : {_indicatorCount}.");
+        Utils.Log($"[SystemUIManager] IndicatorOn : {_indicatorCount}");
     }
 
     public void IndicatorOff()

@@ -64,12 +64,7 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
     private Action<bool> _onFinishedSwitch = null;
     private bool _isSwitching = false;
 
-    //private bool _isLoading = false;
-
-
     public SceneInfo CurrentSceneInfo { get; private set; } = null;
-
-
 
     /////////////////////////////////////////////////
 

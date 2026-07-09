@@ -140,6 +140,9 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
             yield return null;
         }
 
+        if (isShowLoading)
+            SystemUIManager.Instance.SetLoading(1);
+
         yield return new WaitUntil(() => handle.Status != AsyncOperationStatus.None);
 
         if (handle.Status == AsyncOperationStatus.Succeeded)
@@ -150,7 +153,6 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
             }
         }
 
-        yield return new WaitForSecondsRealtime(5f);
         yield return new WaitForEndOfFrame();
 
         // 후.
