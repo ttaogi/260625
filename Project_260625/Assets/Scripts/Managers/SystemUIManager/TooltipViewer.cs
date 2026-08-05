@@ -20,7 +20,6 @@ public class TooltipViewer : MonoBehaviour
     #endregion Inspector
 
     private RectTransform _rectThis = null;
-    private RectTransform _rectCanvasParent = null;
     private RectTransform _rectTooltip = null;
     private Coroutine _coSetPosition = null;
 
@@ -38,7 +37,6 @@ public class TooltipViewer : MonoBehaviour
         textDesc.text = string.Empty;
 
         _rectThis = GetComponent<RectTransform>();
-        _rectCanvasParent = canvasParent.GetComponent<RectTransform>();
         _rectTooltip = objTooltip.GetComponent<RectTransform>();
 
         objTooltipGroup.SetActive(false);
@@ -63,20 +61,6 @@ public class TooltipViewer : MonoBehaviour
         objTooltipGroup.SetActive(false);
     }
 
-    public void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectThis, Input.mousePosition, null, out Vector2 localPoint))
-                Debug.Log($"mouse : {Input.mousePosition}, localPoint: {localPoint}"); //로컬 좌표 디버깅
-    }
-
-    public void TT(Transform target)
-    {
-        Camera camera = Utils.GetCamera(eLayer.UI);
-        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(camera, target.position);
-        Utils.Log($" scr : {screenPos} tar : {target.position}");
-    }
-
     private IEnumerator SetPosition(Transform target)
     {
         Camera camera = Utils.GetCamera(eLayer.UI);
@@ -98,10 +82,8 @@ public class TooltipViewer : MonoBehaviour
 
         yield return null;
 
-        Vector3 test = camera.WorldToScreenPoint(target.position);
-
-        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(camera, target.position);
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectCanvasParent, screenPos, null, out Vector2 localPoint);
+        Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, target.position);
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(_rectThis, screenPos, null, out Vector2 localPoint);
 
         float tooltipWidthHalf = _rectTooltip.rect.width / 2;
         float tooltipHeightHalf = _rectTooltip.rect.height / 2;

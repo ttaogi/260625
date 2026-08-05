@@ -73,22 +73,6 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
     {
         tooltipViewer.HideTooltip();
     }
-
-
-    public GameObject objTest;
-    public string title;
-    public string desc;
-    [ContextMenu("TEST")]
-    public void Test()
-    {
-        ShowTooltip(objTest.transform, title, desc);
-    }
-
-    [ContextMenu("Test convert")]
-    public void TT()
-    {
-        tooltipViewer.TT(objTest.transform);
-    }
     #endregion Tooltip
 
 
