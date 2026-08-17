@@ -797,9 +797,6 @@ MonoBehaviour:
   noticeViewer: {fileID: 3515686152889039093}
   objIndicator: {fileID: 1658878702123114149}
   objIndicatorIcon: {fileID: 709351932302338053}
-  objTest: {fileID: 0}
-  title: qwer
-  desc: 1234 1234
 --- !u!223 &401848195380465521
 Canvas:
   m_ObjectHideFlags: 0
@@ -818,7 +815,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 10000
@@ -1261,6 +1258,7 @@ GameObject:
   - component: {fileID: 8114935371342195456}
   - component: {fileID: 1048441661757309459}
   - component: {fileID: 7245100898223294353}
+  - component: {fileID: 7428307868140567167}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1333,6 +1331,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0549cba12197ae47ab4d73e79f34b3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UIControlManager
+--- !u!114 &7428307868140567167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3998003321341302249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17f48f5685b3abe4d971b5702ede92b1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LoginManager
 --- !u!1 &4506833403247700326
 GameObject:
   m_ObjectHideFlags: 0
