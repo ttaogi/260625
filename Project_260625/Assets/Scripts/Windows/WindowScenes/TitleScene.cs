@@ -18,20 +18,8 @@ public class TitleScene : MonoBehaviour
 
         btnEnter.SetOnClickEvent(() =>
         {
-            //SystemUIManager.Instance.FadeOut(() =>
+            //LoginManager.Instance.Login(textLog, () =>
             //{
-            //    SceneControlManager.Instance.UnloadScene(eScene.Title, () =>
-            //    {
-            //        UIControlManager.Instance.GoWindowScene(eScene.Home, isHistory: false, isShowLoading: true, onFinished: (result) =>
-            //        {
-            //            Utils.Log($"[TitleScene] GoWindowScene : Home, Result : {result}");
-            //            SystemUIManager.Instance.FadeIn();
-            //        });
-            //    });
-            //});
-
-            LoginManager.Instance.Login(textLog, () =>
-            {
                 SystemUIManager.Instance.FadeOut(() =>
                 {
                     SceneControlManager.Instance.UnloadScene(eScene.Title, () =>
@@ -43,7 +31,7 @@ public class TitleScene : MonoBehaviour
                         });
                     });
                 });
-            });
+            //});
         });
     }
 }
