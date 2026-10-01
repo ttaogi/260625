@@ -7,8 +7,12 @@ public class Hero : MonoBehaviour
 {
     #region Enum
     private enum Direction { None, Left, Right, Up, Down }
+    private enum State { None, Idle, Move }
     #endregion Enum
 
+    #region Inspector
+    public Animator animator;
+    #endregion Inspector
 
     private const float TILE_SIZE = 1.0f;
     private const float TILE_SIZE_HALF = 0.5f;
@@ -16,13 +20,17 @@ public class Hero : MonoBehaviour
 
     private Tuple<int, int> _tilePos = new(0, 0);
     private Coroutine _coMoving = null;
+    private Direction _preDir = Direction.Down;
+    private State _preState = State.Idle;
+
+
 
     //////////////////////////////////////////////////
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        SetAnim(Direction.Down, State.Idle, true);
     }
 
     // Update is called once per frame
@@ -31,6 +39,8 @@ public class Hero : MonoBehaviour
         if (IsInputValid() == false) return;
 
         if (IsMove()) return;
+
+        SetAnim(_preDir, State.Idle, false);
 
         //// local func ////
 
@@ -61,6 +71,8 @@ public class Hero : MonoBehaviour
                     StopCoroutine(_coMoving);
 
                 _coMoving = StartCoroutine(CoMove(dir));
+
+                SetAnim(dir, State.Move, false);
 
                 return true;
             }
@@ -114,5 +126,23 @@ public class Hero : MonoBehaviour
         }
 
         _coMoving = null;
+    }
+
+    private void SetAnim(Direction dir, State state, bool isForce)
+    {
+        float dirX = dir == Direction.Right ? 1f : (dir == Direction.Left ? -1f : 0f);
+        float dirY = dir == Direction.Up ? 1f : (dir == Direction.Down ? -1f : 0f);
+
+        if (_preDir != dir || _preState != state || isForce)
+        {
+            animator.SetFloat("DirX", dirX);
+            animator.SetFloat("DirY", dirY);
+            animator.SetBool("Walk", state == State.Move);
+
+            Utils.Log($"dir : {dir}, state : {state}, isForce : {isForce}");
+        }
+
+        if (_preDir != dir) _preDir = dir;
+        if (_preState != state) _preState = state;
     }
 }
