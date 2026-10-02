@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.ConstrainedExecution;
 using UnityEngine;
 
 public class Hero : MonoBehaviour
@@ -12,6 +13,9 @@ public class Hero : MonoBehaviour
 
     #region Inspector
     public Animator animator;
+
+    [Space]
+    public BoxCollider2D coll;
     #endregion Inspector
 
     private const float TILE_SIZE = 1.0f;
@@ -22,6 +26,8 @@ public class Hero : MonoBehaviour
     private Coroutine _coMoving = null;
     private Direction _preDir = Direction.Down;
     private State _preState = State.Idle;
+
+    public readonly LayerMask maskWall = Utils.GetLayerMask(eLayer.Wall);
 
 
 
@@ -51,21 +57,21 @@ public class Hero : MonoBehaviour
 
         bool IsMove()
         {
-            float hor = Input.GetAxisRaw("Horizontal");
-            float ver = Input.GetAxisRaw("Vertical");
+            (float _, float _, Direction dir) = GetDir();
 
-            if (hor != 0 || ver != 0)
-            {
-                Direction dir = Direction.None;
+            if (dir != Direction.None)
+            {   // 충돌 확인.
+                coll.enabled = false; // raycast에 걸리는 것을 방지.
 
-                if (hor < 0)
-                    dir = Direction.Left;
-                else if (hor > 0)
-                    dir = Direction.Right;
-                else if (ver > 0)
-                    dir = Direction.Up;
-                else if (ver < 0)
-                    dir = Direction.Down;
+                Vector2 rayStart = TilePosToPos(_tilePos);
+                Vector2 rayEnd = TilePosToPos(TilePosAddDir(_tilePos, dir));
+                RaycastHit2D hit = Physics2D.Linecast(rayStart, rayEnd, maskWall);
+
+                coll.enabled = true;
+
+                if (hit.transform != null)
+                    return false;
+
 
                 if (_coMoving != null)
                     StopCoroutine(_coMoving);
@@ -79,6 +85,24 @@ public class Hero : MonoBehaviour
             else
                 return false;
         }
+
+        (float, float, Direction) GetDir()
+        {
+            float hor = Input.GetAxisRaw("Horizontal");
+            float ver = Input.GetAxisRaw("Vertical");
+            Direction dir = Direction.None;
+
+            if (hor < 0)
+                dir = Direction.Left;
+            else if (hor > 0)
+                dir = Direction.Right;
+            else if (ver > 0)
+                dir = Direction.Up;
+            else if (ver < 0)
+                dir = Direction.Down;
+
+            return (hor, ver, dir);
+        }
     }
 
     private IEnumerator CoMove(Direction dir)
@@ -90,24 +114,10 @@ public class Hero : MonoBehaviour
         }
 
 
-        switch (dir)
-        {
-            case Direction.Left:
-                _tilePos = new(_tilePos.Item1 - 1, _tilePos.Item2);
-                break;
-            case Direction.Right:
-                _tilePos = new(_tilePos.Item1 + 1, _tilePos.Item2);
-                break;
-            case Direction.Up:
-                _tilePos = new(_tilePos.Item1, _tilePos.Item2 + 1);
-                break;
-            case Direction.Down:
-                _tilePos = new(_tilePos.Item1, _tilePos.Item2 - 1);
-                break;
-        }
+        _tilePos = TilePosAddDir(_tilePos, dir);
 
         Vector2 startPos = transform.localPosition;
-        Vector2 endPos = new(_tilePos.Item1 * TILE_SIZE + TILE_SIZE_HALF, _tilePos.Item2 * TILE_SIZE + TILE_SIZE_HALF);
+        Vector2 endPos = TilePosToPos(_tilePos);
         float time = 0.0f;
 
         while (true)
@@ -126,6 +136,19 @@ public class Hero : MonoBehaviour
         }
 
         _coMoving = null;
+    }
+
+    private Tuple<int, int> TilePosAddDir(Tuple<int, int> curTilePos, Direction dir)
+    {
+        int x = dir == Direction.Right ? 1 : (dir == Direction.Left ? -1 : 0);
+        int y = dir == Direction.Up ? 1 : (dir == Direction.Down ? -1 : 0);
+
+        return new(curTilePos.Item1 + x, curTilePos.Item2 + y);
+    }
+
+    private Vector2 TilePosToPos(Tuple<int, int> tilePos)
+    {
+        return new(tilePos.Item1 * TILE_SIZE + TILE_SIZE_HALF, tilePos.Item2 * TILE_SIZE + TILE_SIZE_HALF);
     }
 
     private void SetAnim(Direction dir, State state, bool isForce)

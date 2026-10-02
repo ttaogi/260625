@@ -54,7 +54,7 @@ public static class Utils
         {
             if (cam.gameObject.activeInHierarchy)
             {
-                var cullingMask = 1 << (int)layer;
+                LayerMask cullingMask = GetLayerMask(layer);
                 if ((cam.cullingMask & cullingMask) != 0)
                 {
                     if (camera == null || camera.depth < cam.depth)
@@ -64,5 +64,10 @@ public static class Utils
         }
 
         return camera;
+    }
+
+    public static LayerMask GetLayerMask(eLayer layer)
+    {
+        return 1 << (int)layer;
     }
 }

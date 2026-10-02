@@ -6,6 +6,7 @@ public enum eLayer
     IgnoreRaycast = 2,
     Water = 4,
     UI = 5,
+    Wall = 6,
 }
 
 public enum eScene
