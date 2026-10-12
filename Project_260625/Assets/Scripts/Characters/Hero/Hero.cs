@@ -122,7 +122,7 @@ public class Hero : MonoBehaviour
 
         while (true)
         {
-            time += Time.deltaTime;
+            time += Utils.DeltaTime;
             time = Mathf.Clamp(time, 0f, MOVING_TIME);
 
             Vector2 newPos = Vector2.Lerp(startPos, endPos, time / MOVING_TIME);

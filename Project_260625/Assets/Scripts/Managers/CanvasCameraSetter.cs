@@ -2,9 +2,12 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class CameraSetter : MonoBehaviour
+public class CanvasCameraSetter : MonoBehaviour
 {
     private Canvas _canvas = null;
+    public Camera Camera { get; }
+
+    //////////////////////////////////////
 
     private void Awake()
     {
@@ -26,25 +29,31 @@ public class CameraSetter : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    #region
     private void OnSceneLoaded(Scene arg0, LoadSceneMode arg1)
     {
-        SetCanvasCameraLate();
+        SearchAndSetCamera();
     }
 
-    public void SetCanvasCamera(WindowScene windowScene)
+    private void SetCanvasCamera(WindowScene windowScene)
     {
-        var camera = Utils.GetCamera(eLayer.UI);
-        _canvas.worldCamera = camera;
+        SearchAndSetCamera();
     }
 
-    public void SetCanvasCameraLate()
+    private void SetCanvasCameraLate()
     {
         StartCoroutine(CoSet());
         IEnumerator CoSet()
         {
             yield return null;
-            var camera = Utils.GetCamera(eLayer.UI);
-            _canvas.worldCamera = camera;
+            SearchAndSetCamera();
         }
     }
+
+    private void SearchAndSetCamera()
+    {
+        var camera = Utils.GetCamera(eLayer.UI);
+        _canvas.worldCamera = camera;
+    }
+    #endregion
 }

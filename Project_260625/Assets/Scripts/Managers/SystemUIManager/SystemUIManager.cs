@@ -111,7 +111,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
         while (true)
         {
-            time += Time.deltaTime;
+            time += Utils.DeltaTime;
 
             if (time > FadeTime)
             {
@@ -163,7 +163,7 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
         while(true)
         {
-            time += Time.deltaTime;
+            time += Utils.DeltaTime;
 
             if (time > FadeTime)
             {

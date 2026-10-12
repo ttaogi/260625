@@ -4682,6 +4682,7 @@ MonoBehaviour:
   maxOrder: 0
   scene: 0
   objOnOffGroup: []
+  objChar: {fileID: 1281352380}
 --- !u!1 &2096755435
 GameObject:
   m_ObjectHideFlags: 0

@@ -1,3 +1,4 @@
+#pragma warning disable IDE1006 // 명명 스타일
 
 public enum eLayer
 {
@@ -21,5 +22,7 @@ public enum ePopup
 {
     None,
 }
+ 
 
 
+#pragma warning restore IDE1006 // 명명 스타일

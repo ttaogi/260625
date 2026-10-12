@@ -1259,6 +1259,7 @@ GameObject:
   - component: {fileID: 1048441661757309459}
   - component: {fileID: 7245100898223294353}
   - component: {fileID: 7428307868140567167}
+  - component: {fileID: 3707619113517639141}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -1343,6 +1344,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17f48f5685b3abe4d971b5702ede92b1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoginManager
+--- !u!114 &3707619113517639141
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3998003321341302249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a9e581edb2373e49b11072d553eb169, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CameraManager
 --- !u!1 &4506833403247700326
 GameObject:
   m_ObjectHideFlags: 0
@@ -1511,7 +1524,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4599291486722835214}
   - component: {fileID: 4391054276365830339}
-  - component: {fileID: 3490032845987327007}
+  - component: {fileID: 4739211038990630976}
   - component: {fileID: 8885328595397522579}
   - component: {fileID: 2484109860913077466}
   - component: {fileID: 5886922670208767219}
@@ -1555,7 +1568,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PopupManager
   popupManagerPopup: {fileID: 2138537487725085709}
---- !u!114 &3490032845987327007
+--- !u!114 &4739211038990630976
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1566,7 +1579,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c910fb30c64f4334da91b66792f743d8, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CameraSetter
+  m_EditorClassIdentifier: Assembly-CSharp::CanvasCameraSetter
 --- !u!223 &8885328595397522579
 Canvas:
   m_ObjectHideFlags: 0

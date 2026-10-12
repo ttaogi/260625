@@ -12,6 +12,8 @@ public static class Utils
 #endif
     }
 
+    public static float DeltaTime => Time.deltaTime;
+
     /// <summary> Enum 의 Description 값 읽어오기. </summary>
     public static string StringValueOfEnum(Enum value)
     {
@@ -64,6 +66,11 @@ public static class Utils
         }
 
         return camera;
+    }
+
+    public static Camera GetMainCamera()
+    {
+        return Camera.main;
     }
 
     public static LayerMask GetLayerMask(eLayer layer)

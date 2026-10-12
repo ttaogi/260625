@@ -5,7 +5,6 @@ using UnityEngine;
 public class WindowScene : Window
 {
     #region Inspector
-
     [Header("씬과 함께 On/Off.")]
     public List<GameObject> objOnOffGroup;
     #endregion Inspector
