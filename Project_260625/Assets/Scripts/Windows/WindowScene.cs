@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class WindowScene : Window
 {
@@ -8,6 +10,8 @@ public class WindowScene : Window
     [Header("씬과 함께 On/Off.")]
     public List<GameObject> objOnOffGroup;
     #endregion Inspector
+
+    protected readonly Dictionary<EntityId, Tuple<AsyncOperationHandle<GameObject>, GameObject>> _handles = new();
 
     /////////////////////////////////////////////
 
@@ -51,8 +55,12 @@ public class WindowScene : Window
     {
         base.OpenProcess();
 
+        StartCoroutine(LoadObjects());
+
         SetOnOffGroup(true);
     }
+
+    protected virtual IEnumerator LoadObjects() { yield break; }
     #endregion Open
 
 
@@ -61,6 +69,10 @@ public class WindowScene : Window
     protected override void CloseProcess()
     {
         SystemUIManager.Instance.IndicatorOn(isIconOn: false);
+
+        CameraManager.Instance.SetTarget(null);
+
+        UnloadObjects();
 
         // 팝업 종료.
         while (childrenWindows.Count > 0)
@@ -72,6 +84,8 @@ public class WindowScene : Window
 
         SystemUIManager.Instance.IndicatorOff();
     }
+
+    protected virtual void UnloadObjects() { return; }
     #endregion Close
 
 

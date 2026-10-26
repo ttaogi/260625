@@ -2,6 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public static class Utils
 {
@@ -76,5 +78,25 @@ public static class Utils
     public static LayerMask GetLayerMask(eLayer layer)
     {
         return 1 << (int)layer;
+    }
+
+    public static AsyncOperationHandle<GameObject> LoadPrefab(string addrKey)
+    {
+        Log($"LoadPrefab : {addrKey}");
+
+        AsyncOperationHandle<GameObject> handle = Addressables.LoadAssetAsync<GameObject>(addrKey);
+
+        return handle;
+    }
+
+    public static void UnloadPrefab(AsyncOperationHandle<GameObject> handle, GameObject obj)
+    {
+        if (handle.IsValid())
+        {
+            Log($"UnloadPrefab : {obj.name}");
+
+            Addressables.Release(handle);
+            Addressables.ReleaseInstance(obj);
+        }
     }
 }

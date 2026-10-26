@@ -168,4 +168,12 @@ public class Hero : MonoBehaviour
         if (_preDir != dir) _preDir = dir;
         if (_preState != state) _preState = state;
     }
+
+    public void SetPos(Tuple<int, int> tilePos)
+    {
+        _tilePos = tilePos;
+
+        Vector2 pos = TilePosToPos(_tilePos);
+        transform.localPosition = pos;
+    }
 }

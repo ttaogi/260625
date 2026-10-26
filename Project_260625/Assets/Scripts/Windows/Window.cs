@@ -40,7 +40,7 @@ public abstract class Window : MonoBehaviour
 
     public bool IsValid { get; protected set; } = false;
 
-    public eScene scene = eScene.None;
+    public virtual eScene Scene {  get { return eScene.None; } }
 
     /////////////////////////////////////////////
 

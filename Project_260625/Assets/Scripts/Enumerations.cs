@@ -16,6 +16,7 @@ public enum eScene
 
      Title,
      Home,
+     Field,
 }
 
 public enum ePopup

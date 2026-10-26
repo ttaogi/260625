@@ -41,5 +41,17 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Map_Base
+    uniqueID: 3409812035
+    locked: 0
+  - name: Wall
+    uniqueID: 1977368083
+    locked: 0
+  - name: Object
+    uniqueID: 1600039855
+    locked: 0
+  - name: Wall_Collision
+    uniqueID: 351411009
+    locked: 0
   m_RenderingLayers:
   - Default
