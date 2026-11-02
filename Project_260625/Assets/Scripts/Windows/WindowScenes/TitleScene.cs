@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class TitleScene : MonoBehaviour
@@ -20,16 +19,9 @@ public class TitleScene : MonoBehaviour
         {
             //LoginManager.Instance.Login(textLog, () =>
             //{
-                SystemUIManager.Instance.FadeOut(() =>
+                UIControlManager.Instance.GoWindowScene(eScene.Home, isHistory: false, onFinished: (result) =>
                 {
-                    SceneControlManager.Instance.UnloadScene(eScene.Title, () =>
-                    {
-                        UIControlManager.Instance.GoWindowScene(eScene.Home, isHistory: false, isShowLoading: true, onFinished: (result) =>
-                        {
-                            Utils.Log($"[TitleScene] GoWindowScene : Home, Result : {result}");
-                            SystemUIManager.Instance.FadeIn();
-                        });
-                    });
+                    Utils.Log($"[TitleScene] GoWindowScene : Home, Result : {result}");
                 });
             //});
         });

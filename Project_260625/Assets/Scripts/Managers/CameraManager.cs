@@ -18,14 +18,12 @@ public class CameraManager : SingletonBehaviour<CameraManager>, IManager
     {
         SetCanvasCameraLate();
         UIControlManager.Instance.OnChangeScene += SetCanvasCamera;
-        SceneControlManager.Instance.OnChangeScene += SetCanvasCameraLate;
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDisable()
     {
         UIControlManager.Instance.OnChangeScene -= SetCanvasCamera;
-        SceneControlManager.Instance.OnChangeScene -= SetCanvasCameraLate;
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
@@ -38,6 +36,7 @@ public class CameraManager : SingletonBehaviour<CameraManager>, IManager
     private void SetCanvasCamera(WindowScene windowScene)
     {
         SearchAndSetCamera();
+        SetCanvasCameraLate();
     }
 
     private void SetCanvasCameraLate()

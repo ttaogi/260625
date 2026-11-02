@@ -12,18 +12,9 @@ public class Portal : MonoBehaviour
     {
         if (collision.gameObject.name.Contains(HERO) && targetScene != eScene.None)
         {
-            eScene startScene = SceneControlManager.Instance.CurScene;
-
-            SystemUIManager.Instance.FadeOut(() =>
+            UIControlManager.Instance.GoWindowScene(targetScene, isHistory: true, onFinished: (result) =>
             {
-                SceneControlManager.Instance.UnloadScene(startScene, () =>
-                {
-                    UIControlManager.Instance.GoWindowScene(targetScene, isHistory: true, isShowLoading: true, onFinished: (result) =>
-                    {
-                        Utils.Log($"[{startScene}Scene] GoWindowScene : {targetScene}, Result : {result}");
-                        SystemUIManager.Instance.FadeIn();
-                    });
-                });
+                Utils.Log($"[Portal] GoWindowScene : {targetScene}, Result : {result}");
             });
         }
     }

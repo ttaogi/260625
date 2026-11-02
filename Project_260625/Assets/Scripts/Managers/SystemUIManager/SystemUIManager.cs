@@ -290,10 +290,14 @@ public class SystemUIManager : SingletonBehaviour<SystemUIManager>, IManager
 
     public void IndicatorOff()
     {
-        objIndicator.SetActive(false);
-        objIndicatorIcon.SetActive(false);
+        _indicatorCount = Mathf.Max(0, _indicatorCount - 1);
 
-        --_indicatorCount;
+        // 다른 곳에서 켠 인디케이터가 남아 있으면 유지.
+        if (_indicatorCount == 0)
+        {
+            objIndicator.SetActive(false);
+            objIndicatorIcon.SetActive(false);
+        }
 
         Utils.Log($"[SystemUIManager] IndicatorOff : {_indicatorCount}");
     }

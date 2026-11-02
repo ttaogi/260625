@@ -137,7 +137,7 @@ public class PopupManager : SingletonBehaviour<PopupManager>, IManager
                     {
                         int order = MaxOrder;
 
-                        if (UIControlManager.IsLive() && UIControlManager.Instance.CurrentSceneInfo.windowScene != null)
+                        if (UIControlManager.IsLive() && UIControlManager.Instance.CurrentSceneInfo?.windowScene != null)
                             order += UIControlManager.Instance.CurrentSceneInfo.windowScene.maxOrder;
 
                         ++order;

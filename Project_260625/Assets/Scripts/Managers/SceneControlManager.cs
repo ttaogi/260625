@@ -1,284 +1,69 @@
 using UnityEngine;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 
+/// <summary> 씬 로드 전담. 항상 Single 모드로 로드한다. (이전 씬은 Addressables가 자동으로 언로드/해제) </summary>
 public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IManager
 {
-    #region Event
-    private Action _onChangeScenePre;
-    public event Action OnChangeScenePre
-    {
-        add
-        {
-            _onChangeScenePre -= value;
-            _onChangeScenePre += value;
-        }
-        remove
-        {
-            _onChangeScenePre -= value;
-        }
-    }
+    private const string SCENE_PATH_FORMAT = "Assets/Scenes/{0}.unity";
 
-    private Action _onChangeScene;
-    public event Action OnChangeScene
-    {
-        add
-        {
-            _onChangeScene -= value;
-            _onChangeScene += value;
-        }
-        remove
-        {
-            _onChangeScene -= value;
-        }
-    }
-    #endregion Event
-
-    private readonly List<AsyncOperationHandle<SceneInstance>> _handles = new();
-
-    public eScene PreScene { get; private set; } = eScene.None;
-    public eScene CurScene { get; private set; } = eScene.None;
-    public eScene CurLoadingScene { get; private set; } = eScene.None;
     public bool IsLoading { get; private set; } = false;
-    public float LoadingRation { get; private set; } = 0f;
 
     /////////////////////////////////////////////////////
-
-    protected override void OnDestroy()
-    {
-        if (IsMyInstance())
-        {
-            SceneManager.sceneLoaded -= OnSceneLoaded;
-            SceneManager.sceneUnloaded -= OnSceneUnloaded;
-        }
-
-        base.OnDestroy();
-    }
 
     public override void Init()
     {
         base.Init();
 
-        PreScene = eScene.None;
-        CurScene = eScene.Title;
-        CurLoadingScene = eScene.None;
         IsLoading = false;
-        LoadingRation = 0f;
-
-        if (IsMyInstance())
-        {
-            SceneManager.sceneLoaded += OnSceneLoaded;
-            SceneManager.sceneUnloaded += OnSceneUnloaded;
-        }
     }
-
-    #region
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        Utils.Log($"[SceneControlManager] OnSceneLoaded : {scene.name}, {mode}");
-    }
-
-    private void OnSceneUnloaded(Scene scene)
-    {
-        Utils.Log($"[SceneControlManager] OnSceneUnloaded : {scene.name}");
-    }
-    #endregion
 
     /////////////////////////////////////////////////////
 
-    public void LoadScene(eScene scene, LoadSceneMode loadSceneMode, bool isShowLoading = true, Action<bool, SceneInstance> onFinished = null)
+    public void LoadScene(eScene scene, bool isShowLoading = true, Action<bool, SceneInstance> onFinished = null)
     {
-        Utils.Log($"[SceneControlManager] LoadScene : {scene}, {loadSceneMode}");
+        Utils.Log($"[SceneControlManager] LoadScene : {scene}");
 
         if (IsLoading)
         {
             Utils.Log($"[SceneControlManager] LoadScene : Already Loading.");
+            onFinished?.Invoke(false, default);
             return;
         }
 
-        IsLoading = true;
-
-        StartCoroutine(CoLoadScene(scene, loadSceneMode, isShowLoading, onFinished));
+        StartCoroutine(CoLoadScene(scene, isShowLoading, onFinished));
     }
 
-    #region LoadScene
-    private IEnumerator CoLoadScene(eScene scene, LoadSceneMode loadSceneMode, bool isShowLoading = true, Action<bool, SceneInstance> onFinished = null)
+    private IEnumerator CoLoadScene(eScene scene, bool isShowLoading, Action<bool, SceneInstance> onFinished)
     {
-        string sceneName = scene.ToString();
+        IsLoading = true;
 
-        // 전.
-        _onChangeScenePre?.Invoke();
-
-        if (loadSceneMode == LoadSceneMode.Single)
-        {
-            PopupManager.Instance.CloseAll();
-
-            yield return StartCoroutine(ReleaseHandles());
-        }
-
-        CurLoadingScene = scene;
-        LoadingRation = 0f;
+        PopupManager.Instance.CloseAll();
 
         if (isShowLoading)
             SystemUIManager.Instance.LoadingOn();
 
-        // 로딩.
-        AsyncOperationHandle<SceneInstance> handle = Addressables.LoadSceneAsync($"Assets/Scenes/{sceneName}.unity", loadSceneMode);
+        AsyncOperationHandle<SceneInstance> handle = Addressables.LoadSceneAsync(string.Format(SCENE_PATH_FORMAT, scene), LoadSceneMode.Single);
 
         while (!handle.IsDone)
         {
-            LoadingRation = handle.PercentComplete;
-
             if (isShowLoading)
-                SystemUIManager.Instance.SetLoading(LoadingRation);
+                SystemUIManager.Instance.SetLoading(handle.PercentComplete);
 
             yield return null;
         }
 
         if (isShowLoading)
-            SystemUIManager.Instance.SetLoading(1);
-
-        yield return new WaitUntil(() => handle.Status != AsyncOperationStatus.None);
-
-        if (handle.Status == AsyncOperationStatus.Succeeded)
-        {
-            lock (_handles)
-            {
-                _handles.Add(handle);
-            }
-        }
-
-        yield return new WaitForEndOfFrame();
-
-        // 후.
-        CurLoadingScene = eScene.None;
-        LoadingRation = 0f;
-        IsLoading = false;
-
-        if (isShowLoading)
             SystemUIManager.Instance.LoadingOff();
+
+        IsLoading = false;
 
         bool result = handle.Status == AsyncOperationStatus.Succeeded;
 
-        if (result)
-        {
-            PreScene = CurScene;
-            CurScene = scene;
-        }
-
-        _onChangeScene?.Invoke();
-        onFinished?.Invoke(result, handle.Result);
-
-        yield break;
-    }
-
-    private IEnumerator ReleaseHandles()
-    {
-        lock (_handles)
-        {
-            for (int i = _handles.Count - 1; i >= 0; --i)
-            {
-                AsyncOperationHandle<SceneInstance> handle = _handles[i];
-
-                if (handle.IsValid())
-                {
-                    AsyncOperationHandle<SceneInstance> unloadHandle = Addressables.UnloadSceneAsync(handle);
-                    yield return unloadHandle;
-                }
-
-                _handles.RemoveAt(i);
-            }
-        }
-    }
-    #endregion LoadScene
-
-
-
-    public void UnloadScene(eScene scene, Action onFinished = null)
-    {
-        StartCoroutine(CoUnloadScene(scene, onFinished));
-    }
-
-    public void UnloadSceneAll(Action onFinished = null)
-    {
-        StartCoroutine(CoUnloadSceneAll(onFinished));
-    }
-
-    #region UnloadScene
-    private IEnumerator CoUnloadScene(eScene scene, Action onFinished = null)
-    {
-        lock (_handles)
-        {
-            AsyncOperationHandle<SceneInstance> handle = _handles.Find(x =>
-            {
-                if (x.IsValid())
-                    return x.Result.Scene.name == scene.ToString();
-                else
-                    return false;
-            });
-
-            if (handle.IsValid())
-            {
-                AsyncOperationHandle<SceneInstance> unloadHandle = Addressables.UnloadSceneAsync(handle, UnloadSceneOptions.None);
-
-                yield return unloadHandle;
-
-                if (unloadHandle.IsValid())
-                    Addressables.Release(unloadHandle);
-            }
-
-            _handles.Remove(handle);
-
-            onFinished?.Invoke();
-        }
-    }
-
-    private IEnumerator CoUnloadSceneAll(Action onFinished = null)
-    {
-        List<eScene> scenes = new();
-
-        lock (_handles)
-        {
-            _handles.RemoveAll(x => x.IsValid() == false);
-
-            for (int i = 0; i < _handles.Count; ++i)
-                if (Enum.TryParse(_handles[i].Result.Scene.name, out eScene scene))
-                    scenes.Add(scene);
-        }
-
-        for (int i = 0; i < scenes.Count; ++i)
-            yield return StartCoroutine(CoUnloadScene(scenes[i]));
-
-        lock (_handles)
-        {
-            _handles.Clear();
-        }
-
-        onFinished?.Invoke();
-    }
-    #endregion UnloadScene
-
-
-
-    public bool IsLoadedScene(eScene scene) => IsLoadedScene(scene.ToString());
-
-    public bool IsLoadedScene(string sceneName)
-    {
-        lock (_handles)
-        {
-            if (_handles.Exists(x => x.IsValid() && x.Result.Scene.name == sceneName))
-                return true;
-            else if (CurLoadingScene != eScene.None)
-                return CurLoadingScene.ToString() == sceneName;
-        }
-
-        return false;
+        onFinished?.Invoke(result, result ? handle.Result : default);
     }
 }
-
-

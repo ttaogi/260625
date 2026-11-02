@@ -1,42 +1,29 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SceneInfo
 {
-    public eScene scene;
-    public Scene unityScene;
-    public WindowScene windowScene;
+    public readonly eScene scene;
+    public readonly Scene unityScene;
+    public readonly WindowScene windowScene;
 
-    public SceneInfo(Scene unityScene)
+    public SceneInfo(eScene scene, Scene unityScene)
     {
-        // scene.
-        if (Enum.TryParse(unityScene.name, true, out eScene parsedScene))
-            this.scene = parsedScene;
-
-        // unity scene.
+        this.scene = scene;
         this.unityScene = unityScene;
 
-        // windowScene.
-        GameObject[] getRootGameObjects = unityScene.GetRootGameObjects();
+        foreach (GameObject root in unityScene.GetRootGameObjects())
+        {
+            windowScene = root.GetComponentInChildren<WindowScene>(true);
 
-        if (getRootGameObjects != null)
-            for (int i = 0; i < getRootGameObjects.Length; i++)
-            {
-                WindowScene windowScene = getRootGameObjects[i].GetComponentInChildren<WindowScene>(true);
-
-                if (windowScene != null)
-                {
-                    this.windowScene = windowScene;
-                    break;
-                }
-            }
+            if (windowScene != null)
+                break;
+        }
     }
 
-    public bool IsValid() => scene != eScene.None && unityScene != null && windowScene != null;
+    public bool IsValid() => scene != eScene.None && unityScene.IsValid() && windowScene != null;
 }
 
 public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
@@ -58,10 +45,7 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
     #endregion Event
 
     private readonly List<eScene> _history = new();
-    private readonly List<SceneInfo> _sceneInfos = new();
 
-    private WindowScene _target = null;
-    private Action<bool> _onFinishedSwitch = null;
     private bool _isSwitching = false;
 
     public SceneInfo CurrentSceneInfo { get; private set; } = null;
@@ -70,8 +54,6 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
 
     protected override void OnDestroy()
     {
-        if (SceneControlManager.Instance)
-            SceneControlManager.Instance.OnChangeScenePre -= Clear;
         if (InputManager.Instance)
             InputManager.Instance.OnBackPress -= BackPress;
 
@@ -83,21 +65,9 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
         base.Init();
 
         InputManager.Instance.OnBackPress += BackPress;
-        SceneControlManager.Instance.OnChangeScenePre += Clear;
     }
 
     /////////////////////////////////////////////////
-
-    private void Clear()
-    {
-        ClearHistory();
-
-        _isSwitching = false;
-
-        CurrentSceneInfo = null;
-    }
-
-
 
     #region History
     public void PushHistory(eScene scene)
@@ -105,78 +75,40 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
         if (scene == eScene.None)
             return;
 
-        for (int i = 0; i < _history.Count; ++i)
-            if (_history[i] == scene)
-            {
-                _history.RemoveAt(i);
-                break;
-            }
-
+        _history.Remove(scene);
         _history.Add(scene);
     }
 
     public eScene PopHistory()
     {
-        if (_history.Count > 0)
-        {
-            eScene scene = _history[^1];
-            _history.RemoveAt(_history.Count - 1);
-            return scene;
-        }
-        else
+        if (_history.Count == 0)
             return eScene.None;
+
+        eScene scene = _history[^1];
+        _history.RemoveAt(_history.Count - 1);
+        return scene;
     }
 
-    public void ClearHistory()
-    {
-        _history.Clear();
-    }
+    public void ClearHistory() => _history.Clear();
     #endregion History
 
 
 
-    public bool BackPress()
-    {
-        if (IsBackPressValid())
-            BackPressProcess();
-
-        return true;
-    }
-
     #region BackPress
-    public bool IsBackPressValid()
+    private bool BackPress()
     {
-        if (SystemUIManager.Instance.IsIndicatorOn)
-            return false;
+        // 인디케이터 / 전환 중이면 무시, 팝업이 있으면 팝업이 먼저 처리.
+        if (SystemUIManager.Instance.IsIndicatorOn || _isSwitching || !PopupManager.Instance.BackPress())
+            return true;
 
-        if (_isSwitching)
-            return false;
-
-        if (!PopupManager.Instance.BackPress())
-            return false;
-
-        return true;
-    }
-
-    private void BackPressProcess()
-    {
-        if (CurrentSceneInfo == null)
-            return;
-
-        WindowScene windowScene = CurrentSceneInfo.windowScene;
-
-        if (windowScene == null)
-            return;
-
-        if (windowScene.BackPress())
+        if (CurrentSceneInfo != null && CurrentSceneInfo.windowScene.BackPress())
         {
             eScene scene = PopHistory();
 
-            if (scene != eScene.None)
-                GoWindowScene(scene, isHistory: false);
-            else
-                GoWindowScene(eScene.Home, isHistory: false);
+            GoWindowScene(scene != eScene.None ? scene : eScene.Home, isHistory: false);
         }
+
+        return true;
     }
     #endregion BackPress
 
@@ -201,124 +133,69 @@ public class UIControlManager : SingletonBehaviour<UIControlManager>, IManager
         SystemUIManager.Instance.IndicatorOn(isIconOn: false);
         SystemUIManager.Instance.FadeOut(() =>
         {
-            LoadWindowScene(scene, isShowLoading, (loadResult, sceneInfo) =>
+            CloseCurrentScene(isHistory);
+
+            SceneControlManager.Instance.LoadScene(scene, isShowLoading, (loadResult, sceneInstance) =>
             {
-                if (loadResult && sceneInfo != null && sceneInfo.IsValid())
+                SceneInfo sceneInfo = loadResult ? new SceneInfo(scene, sceneInstance.Scene) : null;
+
+                if (sceneInfo == null || !sceneInfo.IsValid())
                 {
-                    SwitchWindow(sceneInfo.windowScene, (switchResult) =>
-                    {
-                        if (switchResult)
-                        {
-                            if (isHistory && CurrentSceneInfo != null)
-                                PushHistory(CurrentSceneInfo.scene);
-
-                            CurrentSceneInfo = sceneInfo;
-
-                            SceneManager.SetActiveScene(CurrentSceneInfo.unityScene);
-                        }
-
-                        _isSwitching = false;
-
-                        onFinished?.Invoke(switchResult);
-
-                        SystemUIManager.Instance.FadeIn(() =>
-                        {
-                            SystemUIManager.Instance.IndicatorOff();
-                        });
-                    }, onClose, args);
+                    Finish(false);
+                    return;
                 }
-                else
-                {
-                    _isSwitching = false;
 
-                    onFinished?.Invoke(false);
-
-                    SystemUIManager.Instance.FadeIn(() =>
-                    {
-                        SystemUIManager.Instance.IndicatorOff();
-                    });
-                }
+                OpenScene(sceneInfo, onClose, args, Finish);
             });
         });
+
+        void Finish(bool result)
+        {
+            _isSwitching = false;
+
+            onFinished?.Invoke(result);
+
+            SystemUIManager.Instance.FadeIn(SystemUIManager.Instance.IndicatorOff);
+        }
     }
 
     #region GoWindow
-    private void LoadWindowScene(eScene scene, bool isShowLoading = true, Action<bool, SceneInfo> onFinished = null)
+    private void CloseCurrentScene(bool isHistory)
     {
-        SceneInfo sceneInfo = _sceneInfos.Find(x => x.scene == scene);
-
-        if (sceneInfo != null)
-        {
-            onFinished?.Invoke(true, sceneInfo);
+        if (CurrentSceneInfo == null)
             return;
-        }
 
-        SceneControlManager.Instance.LoadScene(scene, LoadSceneMode.Single, isShowLoading, (result, sceneInstance) =>
+        if (isHistory)
+            PushHistory(CurrentSceneInfo.scene);
+
+        if (CurrentSceneInfo.windowScene != null)
+            CurrentSceneInfo.windowScene.Close();
+
+        CurrentSceneInfo = null;
+    }
+
+    private void OpenScene(SceneInfo sceneInfo, Action onClose, WindowArgs args, Action<bool> onFinished)
+    {
+        WindowScene windowScene = sceneInfo.windowScene;
+
+        // Open 후 다시 활성화될 때 OnEnable -> OpenProcess 가 실행되도록 꺼둔다.
+        windowScene.gameObject.SetActive(false);
+
+        windowScene.Open((result) =>
         {
             if (result)
             {
-                sceneInfo = new(sceneInstance.Scene);
+                CurrentSceneInfo = sceneInfo;
 
-                if (sceneInfo.windowScene != null)
-                    sceneInfo.windowScene.gameObject.SetActive(false);
+                windowScene.gameObject.SetActive(true);
 
-                if (sceneInfo.IsValid())
-                {
-                    _sceneInfos.Add(sceneInfo);
-                    onFinished?.Invoke(true, sceneInfo);
-                }
-                else
-                    onFinished?.Invoke(false, null);
+                _onChangeScene?.Invoke(windowScene);
             }
             else
-                onFinished?.Invoke(false, null);
-        });
-    }
+                windowScene.SetOnOffGroup(false);
 
-    private void SwitchWindow(WindowScene target, Action<bool> onFinishedSwitch = null, Action onClose = null, WindowArgs args = null)
-    {
-        _target = target;
-        _onFinishedSwitch = onFinishedSwitch;
-
-        target.Open(OnFinishedOpen, onClose, args);
-    }
-
-    private void OnFinishedOpen(bool result)
-    {
-        StartCoroutine(CoOnFinishedOpen(result));
-    }
-
-    private IEnumerator CoOnFinishedOpen(bool result)
-    {
-        if (result)
-        {
-            if (CurrentSceneInfo != null)
-            {
-                CurrentSceneInfo.windowScene.OnClose += () =>
-                {
-                    _target.gameObject.SetActive(true);
-                    _onChangeScene?.Invoke(_target);
-                    CurrentSceneInfo = null;
-                };
-
-                CurrentSceneInfo.windowScene.Close();
-
-                yield return new WaitUntil(() => _target.gameObject.activeSelf);
-            }
-            else
-            {
-                _target.gameObject.SetActive(true);
-                _onChangeScene?.Invoke(_target);
-                CurrentSceneInfo = null;
-            }
-        }
-        else
-        {
-            _target.SetOnOffGroup(false);
-        }
-
-        _onFinishedSwitch?.Invoke(result);
+            onFinished?.Invoke(result);
+        }, onClose, args);
     }
     #endregion GoWindow
-
 }
