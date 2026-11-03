@@ -82,7 +82,7 @@ public static class Utils
 
     public static AsyncOperationHandle<GameObject> LoadPrefab(string addrKey)
     {
-        Log($"LoadPrefab : {addrKey}");
+        Log($"[Utils] LoadPrefab : {addrKey}");
 
         AsyncOperationHandle<GameObject> handle = Addressables.LoadAssetAsync<GameObject>(addrKey);
 

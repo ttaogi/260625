@@ -113,7 +113,6 @@ public class Hero : MonoBehaviour
             yield break;
         }
 
-
         _tilePos = TilePosAddDir(_tilePos, dir);
 
         Vector2 startPos = transform.localPosition;
@@ -162,7 +161,7 @@ public class Hero : MonoBehaviour
             animator.SetFloat("DirY", dirY);
             animator.SetBool("Walk", state == State.Move);
 
-            Utils.Log($"dir : {dir}, state : {state}, isForce : {isForce}");
+            Utils.Log($"[Hero] dir : {dir}, state : {state}, isForce : {isForce}");
         }
 
         if (_preDir != dir) _preDir = dir;

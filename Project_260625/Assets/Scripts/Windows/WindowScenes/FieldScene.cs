@@ -62,7 +62,7 @@ public class FieldScene : WindowScene
                 {
                     CameraManager.Instance.SetTarget(obj);
 
-                    if (handleChar.Result != null && handleChar.Result.TryGetComponent<Hero>(out var hero))
+                    if (obj.TryGetComponent<Hero>(out var hero))
                         hero.SetPos(CHAR_POS_INIT);
                 }
             }

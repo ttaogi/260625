@@ -12,6 +12,7 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
     private const string SCENE_PATH_FORMAT = "Assets/Scenes/{0}.unity";
 
     public bool IsLoading { get; private set; } = false;
+    public eScene CurScene { get; private set; }
 
     /////////////////////////////////////////////////////
 
@@ -20,6 +21,7 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
         base.Init();
 
         IsLoading = false;
+        CurScene = eScene.Title;
     }
 
     /////////////////////////////////////////////////////
@@ -61,6 +63,7 @@ public class SceneControlManager : SingletonBehaviour<SceneControlManager>, IMan
             SystemUIManager.Instance.LoadingOff();
 
         IsLoading = false;
+        CurScene = scene;
 
         bool result = handle.Status == AsyncOperationStatus.Succeeded;
 
